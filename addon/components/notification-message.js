@@ -38,13 +38,13 @@ export default Ember.Component.extend({
 
     switch (this.get('notification.type')){
       case "info":
-        return 'fa fa-info-circle';
+        return 'info circle icon';
       case "success":
-        return 'fa fa-check';
+        return 'check icon';
       case "warning":
-        return 'fa fa-warning';
+        return 'warning icon';
       case "error":
-        return 'fa fa-exclamation-circle';
+        return 'exclamation circle icon';
     }
   }),
 
