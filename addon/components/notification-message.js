@@ -1,27 +1,44 @@
+import { htmlSafe } from '@ember/string';
+import { A } from '@ember/array';
+import Component from '@ember/component';
+import { computed } from '@ember/object';
 import Ember from 'ember';
 import layout from '../templates/components/notification-message';
+import styles from '../styles/components/notification-message';
 
-export default Ember.Component.extend({
-  layout: layout,
+export default Component.extend({
+  layout,
+  styles,
 
-  classNames: ['c-notification'],
   classNameBindings: [
+    'dismissClass',
+    'clickableClass',
     'processedType',
-    'notification.dismiss::c-notification--in',
-    'notification.onClick:c-notification--clickable'
+    'notification.cssClasses'
   ],
 
   paused: false,
 
-  // Set the correct close icon depending on chosen icon font
-  closeIcon: Ember.computed('icons', function() {
+  dismissClass: computed('notification.dismiss', function() {
+    if (!this.get('notification.dismiss')) return this.get('styles.c-notification--in');
+
+    return false;
+  }),
+
+  clickableClass: computed('notification.onClick', function() {
+    if (this.get('notification.onClick')) return this.get('styles.c-notification--clickable');
+
+    return false;
+  }),
+
+  closeIcon: computed('icons', function() {
     if (this.get('icons') === 'bootstrap') return 'glyphicon glyphicon-remove';
 
     return 'fa fa-times';
   }),
 
   // Set icon depending on notification type
-  notificationIcon: Ember.computed('notification.type', 'icons', function() {
+  notificationIcon: computed('notification.type', 'icons', function() {
     const icons = this.get('icons');
 
     if (icons === 'bootstrap') {
@@ -67,17 +84,17 @@ export default Ember.Component.extend({
     }
   },
 
-  processedType: Ember.computed('notification.type', function() {
-    if (this.get('notification.type') && Ember.A(['info', 'success', 'warning', 'error']).contains(this.get('notification.type'))) {
-      return `c-notification--${this.get('notification.type')}`;
+  processedType: computed('notification.type', function() {
+    if (this.get('notification.type') && A(['info', 'success', 'warning', 'error']).includes(this.get('notification.type'))) {
+      return this.get(`styles.c-notification--${this.get('notification.type')}`);
     }
   }),
 
   // Apply the clear animation duration rule inline
-  notificationClearDuration: Ember.computed('paused', 'notification.clearDuration', function() {
+  notificationClearDuration: computed('paused', 'notification.clearDuration', function() {
     const duration = Ember.Handlebars.Utils.escapeExpression(this.get('notification.clearDuration'));
     const playState = this.get('paused') ? 'paused' : 'running';
-    return Ember.String.htmlSafe(`animation-duration: ${duration}ms; -webkit-animation-duration: ${duration}ms; animation-play-state: ${playState}; -webkit-animation-play-state: ${playState}`);
+    return htmlSafe(`animation-duration: ${duration}ms; -webkit-animation-duration: ${duration}ms; animation-play-state: ${playState}; -webkit-animation-play-state: ${playState}`);
   }),
 
   actions: {
