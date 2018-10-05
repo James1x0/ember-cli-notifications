@@ -2,7 +2,7 @@ import { assign, merge } from '@ember/polyfills';
 import ArrayProxy from '@ember/array/proxy';
 import { A } from '@ember/array';
 import { isEmpty } from '@ember/utils';
-import EmberObject, { getWithDefault } from '@ember/object';
+import EmberObject, { getWithDefault, computed } from '@ember/object';
 import { run } from '@ember/runloop';
 import config from 'ember-get-config';
 
@@ -11,6 +11,14 @@ const globals = config['ember-cli-notifications'] || {}; // Import app config ob
 
 const NotificationMessagesService = ArrayProxy.extend({
   content: A(),
+
+  scheduler: computed(function () {
+    return config.environment === 'test' ? setTimeout : run.later;
+  }),
+
+  cancel: computed(function () {
+    return config.environment === 'test' ? clearTimeout : run.cancel;
+  }),
 
   // Method for adding a notification
   addNotification(options) {
@@ -77,7 +85,7 @@ const NotificationMessagesService = ArrayProxy.extend({
     notification.set('dismiss', true);
 
     // Delay removal from DOM for dismissal animation
-    run.later(this, () => {
+    this.get('scheduler')(() => {
       this.removeObject(notification);
     }, 500);
   },
@@ -85,7 +93,7 @@ const NotificationMessagesService = ArrayProxy.extend({
   setupAutoClear(notification) {
     notification.set('startTime', Date.now());
 
-    const timer = run.later(this, () => {
+    const timer = this.get('scheduler')(() => {
       // Hasn't been closed manually
       if (this.indexOf(notification) >= 0) {
           this.removeNotification(notification);
@@ -96,7 +104,7 @@ const NotificationMessagesService = ArrayProxy.extend({
   },
 
   pauseAutoClear(notification) {
-    run.cancel(notification.get('timer'));
+    this.get('cancel')(notification.get('timer'));
 
     const elapsed = Date.now() - notification.get('startTime');
     const remaining = notification.get('clearDuration') - elapsed;
