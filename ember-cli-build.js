@@ -6,7 +6,7 @@ module.exports = function(defaults) {
   let app = new EmberAddon(defaults, {
     cssModules: {
       plugins: [
-        require('postcss-import')
+        require('postcss-preset-env')
       ]
     }
   });
